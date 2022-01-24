@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<sftp:config name="SFTP_Config1" doc:name="SFTP Config" doc:id="bc538cda-8a31-4fa9-bd10-cb8da3e75b72" >
+		<sftp:connection workingDir="/" host="192.168.1.47 " port="2222" username="tester" password="password" identityFile="C:\Users\harshpsingh\Downloads\RebexTinySftpServer-Binaries-Latest\server-private-key-rsa.ppk" />
+	</sftp:config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="643fba9f-1989-49e3-a0c2-6a935101dcdb" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="2b49883c-492a-48bc-9e2b-46b372680775" >
+		<db:my-sql-connection host="remotemysql.com" port="3306" user="Ozws8sg7c0" password="5HkreqCyQQ" database="Ozws8sg7c0" />
+	</db:config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="d08b6a31-fbd4-4517-9adc-14bf63fbe230" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="69833129-6563-483f-bc6e-342a5928bf1b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="ca868cc8-6a11-43c8-b5ac-3026015eb3eb" />
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="4f15e63f-6663-4cc1-ad5c-f930943539ce" >
+		<jms:active-mq-connection />
+	</jms:config>
+</mule>

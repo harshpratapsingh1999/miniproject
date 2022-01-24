@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<flow name="mini-projectFlow" doc:id="b2c3129f-9b03-493c-afa0-5ca83bf94b18" >
+		<scheduler doc:name="Scheduler" doc:id="690f383a-cbb5-4725-81c8-aa0f11f8c61e" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="1b4b444f-f88b-48f9-9016-e725d4e70f44" >
+			<route >
+				<os:retrieve doc:name="Retrieve time 2" doc:id="3d099aa1-a863-4a20-9ce3-9520a26040a3" key="time2" target="m2">
+					<os:default-value ><![CDATA[#[now().seconds]]]></os:default-value>
+				</os:retrieve>
+			</route>
+			<route >
+				<os:retrieve doc:name="Retrieve time 1" doc:id="0bc00b03-6e33-43a5-9fa5-3a47e3701a7b" key="time1" target="m3">
+					<os:default-value ><![CDATA[#[now().seconds]]]></os:default-value>
+				</os:retrieve>
+			</route>
+		</scatter-gather>
+		<choice doc:name="Choice" doc:id="089d9721-5fa5-4009-be56-686a20b9a28b" >
+			<when expression="#[((abs(now().seconds - (vars.m3 as Number)) mod 5) == 0) and ((abs(now().seconds - (vars.m2 as Number)) mod 7) == 0)]">
+				<os:store doc:name="time 1" doc:id="4196b3d3-b51a-4838-8fd6-b28a9814c137" key="time1">
+					<os:value ><![CDATA[#[now().seconds]]]></os:value>
+				</os:store>
+				<os:store doc:name="time 2" doc:id="9a211069-9515-4f74-be29-d6611ef89e2c" key="time2">
+					<os:value ><![CDATA[#[now().seconds]]]></os:value>
+				</os:store>
+				<try doc:name="Try" doc:id="85e63e17-b798-48fc-9e1c-db5bfe7d73e6" >
+					<flow-ref doc:name="readPersonA" doc:id="7ee7ae8b-3c2d-4b5f-82d9-53d5eb9d11cf" name="readPersonA"/>
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="95e14ddf-d12e-4636-8cc4-655d3d5d394a" >
+							<sftp:move doc:name="Move_order" doc:id="4a6819b4-8a95-4fbe-a4ba-892c3bf24d5b" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerA\input\Order.xml" targetPath="C:\mini_project\sourceFiles\partnerA\error"/>
+							<sftp:move doc:name="Move_product" doc:id="a09812a9-4cc7-4b9e-80fe-c09737ce46bd" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerA\input\Product.csv" targetPath="C:\mini_project\sourceFiles\partnerA\error"/>
+						</on-error-continue>
+					</error-handler>
+				</try>
+				<try doc:name="Try" doc:id="35cc70d9-c249-4e33-9238-c84a50890792" >
+					<flow-ref doc:name="readPersonB" doc:id="5eba0fa7-9d13-4f8e-a20f-9d3d6c9c2549" name="readPersonA" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ef1b65e6-c128-4303-a266-9b1cd6de8b38" >
+							<sftp:move doc:name="Move_order" doc:id="58239cda-537b-4ad7-a4ec-115d3c3c5e8f" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerB\input\Order.xml" targetPath="C:\mini_project\sourceFiles\partnerB\error"/>
+							<sftp:move doc:name="Move_product" doc:id="0f5db69b-81f9-4ace-90d3-5d8a8326e69f" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerB\input\Product.csv" targetPath="C:\mini_project\sourceFiles\partnerB\error"/>
+						</on-error-continue>
+					</error-handler>
+				</try>
+				<sftp:move doc:name="Move_order_partner_A" doc:id="e47f718a-700a-4cf8-bdfe-76368b5810e8" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerA\input\Order.xml" targetPath="C:\mini_project\sourceFiles\partnerA\archive"/>
+				<sftp:move doc:name="Move_product_partner_A" doc:id="84ee2303-1fdf-4807-aaf6-e9913166b2f4" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerA\input\Product.csv" targetPath="C:\mini_project\sourceFiles\partnerA\archive"/>
+				<sftp:move doc:name="Move_order_partner_B" doc:id="b9d3ad65-e4ff-486b-9caa-52e40a1c1268" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerB\input\Order.xml" targetPath="C:\mini_project\sourceFiles\partnerB\archive"/>
+				<sftp:move doc:name="Move_product_partner_B" doc:id="fba963ec-ef2e-4f32-aad1-d880c451085b" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerB\input\Product.csv" targetPath="C:\mini_project\sourceFiles\partnerB\archive"/>
+				<logger level="INFO" doc:name="Logger" doc:id="25c9daaa-4447-4e44-a9ee-ac8842db1f67" />
+			</when>
+			<when expression="#[(abs(now().seconds - (vars.m2 as Number)) mod 7) == 0]">
+				<os:store doc:name="time 2" doc:id="13c10b10-1fb9-4e67-ba64-9d28821fc784" key="time2">
+					<os:value ><![CDATA[#[now().seconds]]]></os:value>
+				</os:store>
+				<try doc:name="Try" doc:id="f04dbef7-7fc6-4cf7-8d0e-a848100eb5e0" >
+					<flow-ref doc:name="Flow Reference" doc:id="79629d9d-4779-4c44-bda0-1863857a2a5e" name="readPersonA"/>
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e5503d2e-dea3-4d0e-9bd1-a44a3e90ba3e" >
+							<sftp:move doc:name="Move_order" doc:id="7d5913b8-270f-41c8-9ff4-439874d1f889" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerA\input\Order.xml" targetPath="C:\mini_project\sourceFiles\partnerA\error"/>
+							<sftp:move doc:name="Move_product" doc:id="c946c382-5985-43a6-997e-6354935eec59" config-ref="SFTP_Config1" targetPath="C:\mini_project\sourceFiles\partnerA\error" sourcePath="C:\mini_project\sourceFiles\partnerA\input\Product.csv"/>
+						</on-error-continue>
+					</error-handler>
+				</try>
+				<sftp:move doc:name="Move_order" doc:id="3cedcf9d-e08b-49a3-a4d1-32f2a5fa96c4" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerA\input\Order.xml" targetPath="C:\mini_project\sourceFiles\partnerA\archive"/>
+				<sftp:move doc:name="Move_product" doc:id="22070611-b8fd-4b27-97e1-0cdbf9908e77" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerA\input\Product.csv" targetPath="C:\mini_project\sourceFiles\partnerA\archive"/>
+				<logger level="INFO" doc:name="Logger" doc:id="8b27f4f8-87e4-4725-9418-7a2678c8483d" />
+			</when>
+			<when expression="#[(abs(now().seconds - (vars.m2 as Number)) mod 5) == 0]">
+				<os:store doc:name="time 1" doc:id="a55a0aac-581e-4ed5-9ce5-90ad662ceedc" key="time1">
+					<os:value ><![CDATA[#[now().seconds]]]></os:value>
+				</os:store>
+				<try doc:name="Try" doc:id="79300d50-d2ed-4817-80f7-cb751cf0870f" >
+					<flow-ref doc:name="Flow Reference" doc:id="ce3cf940-7e0b-49a4-8612-13836479f9d7" name="readPersonB" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="80b4193f-9149-4e5f-9d5a-9d00b3072ba8" >
+							<sftp:move doc:name="Move_order" doc:id="b358bda4-23ac-4133-a445-adf3e9296edf" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerB\input\Order.xml" targetPath="C:\mini_project\sourceFiles\partnerB\error"/>
+							<sftp:move doc:name="Move_product" doc:id="03b0e74c-c00b-4790-b1b2-d3130d31e022" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerB\input\Product.csv" targetPath="C:\mini_project\sourceFiles\partnerB\error"/>
+						</on-error-continue>
+					</error-handler>
+				</try>
+				<sftp:move doc:name="Move_order" doc:id="a687d8a3-a2d1-4996-a283-ad28db818c96" config-ref="SFTP_Config1" sourcePath="C:\mini_project\sourceFiles\partnerB\input\Order.xml" targetPath="C:\mini_project\sourceFiles\partnerB\archive"/>
+				<sftp:move doc:name="Move_product" doc:id="a06aa373-246d-416f-872b-1c7fe1ef2aaf" config-ref="SFTP_Config1" targetPath="C:\mini_project\sourceFiles\partnerB\archive" sourcePath="C:\mini_project\sourceFiles\partnerB\input\Product.xml"/>
+				<logger level="INFO" doc:name="Logger" doc:id="04ea94d2-afa3-43cb-af74-22964fef181e" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="0b1041d3-ce76-4962-8ffd-8ffa2c11eb22" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="readPersonA" doc:id="ec4e9558-58f5-4b3f-880c-3c88b8dd7efd" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="bad6bc42-6c42-407e-9245-4c7661a997ec" >
+			<route >
+				<sftp:read doc:name="Read_order_xml" doc:id="47776442-8e3f-4c9b-95cc-9569dfc43815" config-ref="SFTP_Config1" path="C:\mini_project\sourceFiles\partnerA\input\Order.xml"/>
+				<http:request method="POST" doc:name="order_Request" doc:id="c8aaa823-80ba-4e23-936b-743f64e4b928" path="/order" config-ref="HTTP_Request_configuration1"/>
+			</route>
+			<route >
+				<sftp:read doc:name="Read_product_csv" doc:id="579e5a0b-508d-43b3-9ea7-3e20e4d55f42" config-ref="SFTP_Config1" path="C:\mini_project\sourceFiles\partnerA\input\Product.csv"/>
+				<http:request method="GET" doc:name="product_Request" doc:id="0ced2e09-b5b8-4ba6-b19d-376418101d7b" path="/product" config-ref="HTTP_Request_configuration1"/>
+			</route>
+		</scatter-gather>
+	</flow>
+	<flow name="readPersonB" doc:id="2ae0adba-c4eb-4749-8c6c-a7c1d84c2dfb" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="dc5369f1-c11b-44e3-8b2e-62989d5dc366" >
+			<route >
+				<sftp:read doc:name="Read_order_xml" doc:id="905ea1ea-1daf-4d45-8edf-e25b227da16d" config-ref="SFTP_Config1" path="C:\mini_project\sourceFiles\partnerB\input\Order.xml"/>
+				<http:request method="GET" doc:name="order_Request" doc:id="fd929ee2-656d-4664-8729-501eea04908d" path="/order" config-ref="HTTP_Request_configuration1"/>
+			</route>
+			<route >
+				<sftp:read doc:name="Read_product_csv" doc:id="e6b5c081-b50b-4b73-907c-9e05c9e6bea3" config-ref="SFTP_Config1" path="C:\mini_project\sourceFiles\partnerA\input\Product.csv"/>
+				<http:request method="GET" doc:name="product_Request" doc:id="a1c3366e-5589-4b1e-bd87-f0d9747a47da" path="/product" config-ref="HTTP_Request_configuration1"/>
+			</route>
+		</scatter-gather>
+	</flow>
+	<flow name="order-api" doc:id="dd00f6bb-ba08-43eb-9abc-1c523257e912" >
+		<http:listener doc:name="Listener" doc:id="a7e80a73-fdef-47f4-9aed-b61328d0cc6d" config-ref="HTTP_Listener_config" path="/order"/>
+		<ee:transform doc:name="Xml to json" doc:id="46bd58c1-9173-44e4-a629-a8f2b0abad28" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.orderdetail.*record map {
+	ID:0,
+	oId: $.orderId,
+	pId: $.productId,
+	sId: $.shipmentId,
+	pA: $.pickupAddress,
+	dA: $.deliveryAddress,
+	pName: $.productName,
+	dS: $.deliveryStatus as String
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="f30f9e94-06b7-4ee4-9f26-5df4aa99ef02" >
+			<db:insert doc:name="Insert" doc:id="2817d8bd-4023-4ff3-9e40-fe9c6e24cd0b" config-ref="Database_Config">
+				<db:sql ><![CDATA[insert into orderDetails(ID,orderId,productId,productName,shipmentId,pickupAddress,deliveryAddress,deliveryStatus) values(:ID,:oId,:pId,:pName,:sId,:pA,:dA,:dS)]]></db:sql>
+				<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+			</db:insert>
+		</foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="9f69a42e-672c-4ed4-bbfd-c147c4350deb" />
+		<jms:publish doc:name="Publish" doc:id="a2b5d53f-39e9-4c17-aae8-a86a86e54fa6" config-ref="JMS_Config" destination="OrderQ"/>
+	</flow>
+	<flow name="product-api" doc:id="bfda8126-69e0-4c24-a6a6-f238cdc1bb60" >
+		<http:listener doc:name="Listener" doc:id="44134225-9b33-470f-b05d-1a0cf4a69803" config-ref="HTTP_Listener_config" path="/product"/>
+		<ee:transform doc:name="XML to Json" doc:id="7468937a-af7c-4ddc-b5c0-f76011c3eab3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="d924328f-a090-45f0-b0e4-f7977e0e6eda" >
+			<db:insert doc:name="Insert" doc:id="742b9c6a-3c7e-4441-9dda-28987623e15f" config-ref="Database_Config">
+				<db:sql ><![CDATA[INSERT INTO productDetails(ID,productId,productName,sellerName,sellerAddress) VALUES (:ID,:pid,:pName,:sName,:sAdd)]]></db:sql>
+			</db:insert>
+		</foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="1f2278a0-4fc2-4631-a921-063b3dd79a96" />
+		<jms:publish doc:name="Publish" doc:id="05399972-178a-430f-875d-74174ef7c1b1" config-ref="JMS_Config" destination="productQ"/>
+	</flow>
+	<flow name="product-to-salesforce" doc:id="fb02c079-adb9-402e-b0c6-cbdd16f72313" >
+		<jms:listener doc:name="On New Message" doc:id="f55081a7-1a13-44e4-83b6-64556881e357" config-ref="JMS_Config" destination="productQ"/>
+		<logger level="INFO" doc:name="Logger" doc:id="6e387bff-fc94-4aea-b769-8040c190c5ff" message="#[payload]"/>
+		<os:retrieve doc:name="Retrieve" doc:id="6a631361-abde-419d-a514-5a88d2780ef9" key="max" objectStore="Object_store">
+			<os:default-value ><![CDATA[0]]></os:default-value>
+		</os:retrieve>
+		<db:select doc:name="Select" doc:id="a157a3f5-f306-446e-a4af-716f9e4ae534" config-ref="Database_Config">
+			<db:sql ><![CDATA[select distinct * from productDetails where ID>:M]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"M":vars.M
+}]]]></db:input-parameters>
+		</db:select>
+		<os:store doc:name="Store" doc:id="3a3e14dd-2596-4e3c-8034-fdd2862ad9f6" key="max">
+			<os:value ><![CDATA[#[max(payload.*ID)]]]></os:value>
+		</os:store>
+		<ee:transform doc:name="Transform Message" doc:id="f6341ae4-c22c-4c30-be48-6d229c7af720" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="250a6a22-e4cf-4ee9-a7f6-87fd29d7b463" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="cc4f63b8-c254-4d04-b347-5e7909ffc2ce" >
+				<db:delete doc:name="Delete" doc:id="835ef106-0997-4af2-913c-f2dfe4e19e79" config-ref="Database_Config">
+					<db:sql ><![CDATA[Delete from productDetails where ID>:M]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	"M":vars.M
+}]]]></db:input-parameters>
+				</db:delete>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="order-to-salesforce" doc:id="dac47039-524b-4c09-a7a0-388ce5ba82b7" >
+		<jms:listener doc:name="On New Message" doc:id="130d5aae-1da7-4548-8ce9-11946a0974da" config-ref="JMS_Config" destination="/order"/>
+		<logger level="INFO" doc:name="Logger" doc:id="54340c62-bb35-4d99-9f96-0af944e05719" />
+		<os:retrieve doc:name="Retrieve" doc:id="33540d4b-7ad4-41a4-b281-ebdcffc54cfe" key="maxO" objectStore="Object_store">
+			<os:default-value ><![CDATA[0]]></os:default-value>
+		</os:retrieve>
+		<db:select doc:name="Select" doc:id="8ea891bf-7905-4398-adb3-75d86b18e5ce" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from orderDetails where ID>:M1]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"M1":vars.M1
+}]]]></db:input-parameters>
+		</db:select>
+		<os:store doc:name="Store" doc:id="308e9a8b-7e11-4ce7-831b-83778a1ec4cc" key="maxO">
+			<os:value ><![CDATA[#[max(payload.*ID)]]]></os:value>
+		</os:store>
+		<ee:transform doc:name="Transform Message" doc:id="d149b7e8-58e3-4e81-b423-24bc46524088" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="b17a74fb-cac6-4a9b-b1e7-a8bdb3377dee" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e7db7379-15da-43f8-90c5-95acab119e4c" >
+				<ee:transform doc:name="Transform Message" doc:id="f9ec4b0f-7dce-48d7-8ad5-ecc2cef98a71" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

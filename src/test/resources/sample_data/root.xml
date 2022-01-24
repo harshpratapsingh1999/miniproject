@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <row>
+        <OrderId>1234</OrderId>
+        <ProductId>12</ProductId>
+        <ProductName>abc</ProductName>
+        <ShipmentId>42</ShipmentId>
+        <PickupAddress>dcc</PickupAddress>
+        <DeliveryAddress>dscxs</DeliveryAddress>
+        <DeliveryStatus>Packaged</DeliveryStatus>
+    </row>
+    <row>
+        <OrderId>1234</OrderId>
+        <ProductId>12</ProductId>
+        <ProductName>abc</ProductName>
+        <ShipmentId>42</ShipmentId>
+        <PickupAddress>dcc</PickupAddress>
+        <DeliveryAddress>dscxs</DeliveryAddress>
+        <DeliveryStatus>Packaged</DeliveryStatus>
+    </row>
+</root>
